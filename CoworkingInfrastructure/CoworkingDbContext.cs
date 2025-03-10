@@ -2,17 +2,18 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using CoworkingDomain.Model;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace CoworkingInfrastructure;
 
-public partial class CoworkingDbContext : DbContext
+public partial class CoworkingDbContext : IdentityDbContext<User>
 {
     public CoworkingDbContext()
     {
     }
 
     public CoworkingDbContext(DbContextOptions<CoworkingDbContext> options)
-        : base(options)
+           : base(options)
     {
     }
 
@@ -30,14 +31,14 @@ public partial class CoworkingDbContext : DbContext
 
     public virtual DbSet<Review> Reviews { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Server=Victus04\\SQLEXPRESS; Database=CoworkingDB; Trusted_Connection=True; TrustServerCertificate=True; ");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.UseCollation("Cyrillic_General_100_CI_AS");
 
         modelBuilder.Entity<Booking>(entity =>
@@ -208,29 +209,6 @@ public partial class CoworkingDbContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.Reviews)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK__reviews__user_id__07C12930");
-        });
-
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__users__3213E83FB501DDCE");
-
-            entity.ToTable("users");
-
-            entity.HasIndex(e => e.Email, "UQ__users__AB6E6164510AE3B4").IsUnique();
-
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Email)
-                .HasMaxLength(255)
-                .HasColumnName("email");
-            entity.Property(e => e.Password)
-                .HasMaxLength(255)
-                .HasColumnName("password");
-            entity.Property(e => e.PhoneNumber)
-                .HasMaxLength(20)
-                .HasColumnName("phone_number");
-            entity.Property(e => e.Username)
-                .HasMaxLength(255)
-                .HasColumnName("username");
         });
 
         OnModelCreatingPartial(modelBuilder);

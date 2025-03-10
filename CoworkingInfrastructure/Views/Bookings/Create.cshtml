@@ -1,0 +1,24 @@
+﻿@model CoworkingInfrastructure.ViewModels.Bookings.BookingCreateViewModel
+
+<h2>Create Booking</h2>
+
+<form method="post" asp-action="Create">
+    <!-- Якщо ви передаєте CoworkingSpaceId як hidden -->
+    <input type="hidden" asp-for="CoworkingSpaceId" />
+
+    <div class="mb-3">
+        <label asp-for="StartTime" class="form-label"></label>
+        <input asp-for="StartTime" class="form-control" />
+        <span asp-validation-for="StartTime" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EndTime" class="form-label"></label>
+        <input asp-for="EndTime" class="form-control" />
+        <span asp-validation-for="EndTime" class="text-danger"></span>
+    </div>
+
+    <!-- Якщо треба додаткові послуги, додаєте тут чекбокси -->
+
+    <button type="submit" class="btn btn-primary">Book</button>
+</form>

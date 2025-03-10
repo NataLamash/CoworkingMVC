@@ -1,0 +1,38 @@
+﻿@model IEnumerable<CoworkingDomain.Model.Booking>
+
+<h2>All Bookings (Admin)</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Coworking Space</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Duration (hrs)</th>
+            <th>Total Price</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var booking in Model)
+        {
+            <tr>
+                <td>@booking.User?.Email</td>
+                <td>@booking.CoworkingSpace?.Name</td>
+                <td>@booking.StartTime</td>
+                <td>@booking.EndTime</td>
+                <td>@booking.Duration</td>
+                <td>@booking.TotalPrice</td>
+                <td>@booking.Status</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@booking.Id">Details</a> |
+                    <!-- Якщо адміністратор може видаляти бронювання -->
+                    <form asp-action="Delete" asp-route-id="@booking.Id" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

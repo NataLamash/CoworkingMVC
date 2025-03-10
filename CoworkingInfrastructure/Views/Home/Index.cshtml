@@ -1,8 +1,29 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@section HeroSection {
+    <div style="
+  position: relative;
+  height: 80vh;
+  background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+              url('/img/img1.png') no-repeat center center;
+  background-size: cover;
+    ">
+        <div style="
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+      ">
+            <h1 class="display-3 fw-bold">CoworkingHub</h1>
+            <p class="lead">Відкрий для себе комфорт та продуктивність з нами!</p>
+            <a asp-controller="CoworkingSpaces"
+               asp-action="Index"
+               class="btn btn-primary btn-lg mt-3">
+                Подивитися коворкінги
+            </a>
+        </div>
+    </div>
+}

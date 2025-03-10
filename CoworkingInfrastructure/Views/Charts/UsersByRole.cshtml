@@ -1,0 +1,47 @@
+﻿@{
+    ViewData["Title"] = "User Roles Statistics";
+}
+
+<h2>User Roles Statistics</h2>
+
+<div id="usersByRoleChart"></div>
+
+@section Scripts {
+    <!-- Підключаємо Google Charts -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        // Завантаження пакету для побудови діаграм
+        google.charts.load('current', { packages: ['corechart'] });
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            // Виконуємо запит до API, щоб отримати статистику користувачів за ролями
+            fetch('/api/charts/usersByRole')
+                .then(response => response.json())
+                .then(data => {
+                    // Створюємо DataTable для Google Charts
+                    const dataTable = new google.visualization.DataTable();
+                    dataTable.addColumn('string', 'Role');
+                    dataTable.addColumn('number', 'Count');
+
+                    // Додаємо рядки з отриманими даними
+                    data.forEach(item => {
+                        dataTable.addRow([item.role, item.count]);
+                    });
+
+                    // Опції діаграми (Donut Chart)
+                    const options = {
+                        title: 'Users by Role',
+                        width: 600,
+                        height: 400,
+                        pieHole: 0.4
+                    };
+
+                    // Створюємо діаграму та відображаємо її в елементі з id "usersByRoleChart"
+                    const chart = new google.visualization.PieChart(document.getElementById('usersByRoleChart'));
+                    chart.draw(dataTable, options);
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+    </script>
+}

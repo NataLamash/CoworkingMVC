@@ -6,7 +6,7 @@ namespace CoworkingDomain.Model;
 public partial class Booking : Entity
 {
 
-    public int UserId { get; set; }
+    public string? UserId { get; set; }
 
     public int CoworkingSpaceId { get; set; }
 

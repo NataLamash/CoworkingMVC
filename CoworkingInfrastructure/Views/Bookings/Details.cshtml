@@ -1,0 +1,35 @@
+﻿@model CoworkingDomain.Model.Booking
+
+<h2>Деталі бронювання</h2>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Коворкінг:</dt>
+            <dd class="col-sm-9">@Model.CoworkingSpace?.Name</dd>
+
+            <dt class="col-sm-3">Дата та час початку:</dt>
+            <dd class="col-sm-9">@Model.StartTime.ToString("g")</dd>
+
+            <dt class="col-sm-3">Дата та час завершення:</dt>
+            <dd class="col-sm-9">@Model.EndTime.ToString("g")</dd>
+
+            <dt class="col-sm-3">Тривалість (год):</dt>
+            <dd class="col-sm-9">@Model.Duration</dd>
+
+            <dt class="col-sm-3">Загальна вартість:</dt>
+            <dd class="col-sm-9">@Model.TotalPrice.ToString("C")</dd>
+
+            <dt class="col-sm-3">Статус:</dt>
+            <dd class="col-sm-9">@Model.Status</dd>
+
+            <dt class="col-sm-3">Бронювання здійснено:</dt>
+            <dd class="col-sm-9">@Model.User?.Email</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Повернутися до списку</a>
+    @* Можна додати інші кнопки, наприклад, для редагування або скасування бронювання, якщо потрібно *@
+</div>

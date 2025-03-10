@@ -1,0 +1,75 @@
+﻿@model IEnumerable<UserViewModel>
+
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<h2>Список користувачів</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Роль(і)</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Email</td>
+                <td>
+                    @string.Join(", ", user.Roles)
+                </td>
+                <td>
+                    <form asp-controller="Users" asp-action="Delete" method="post" style="display:inline;">
+                        <input type="hidden" name="userId" value="@user.Id" />
+                        <button type="submit" class="btn btn-danger">Видалити</button>
+                    </form>
+                    <a asp-controller="Users" asp-action="EditRoles" asp-route-userId="@user.Id" class="btn btn-warning ms-2">Змінити ролі</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr />
+
+<!-- Контейнер для діаграми -->
+<h3>Статистика за ролями користувачів</h3>
+<div id="usersByRoleChart" style="width:100%; max-width:600px; height:400px; margin: 0 auto;"></div>
+
+@section Scripts {
+    <!-- Підключення Google Charts через CDN -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        // Завантаження пакету діаграм
+        google.charts.load('current', { packages: ['corechart'] });
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            fetch('/api/charts/usersByRole')
+                .then(response => response.json())
+                .then(data => {
+                    const dataTable = new google.visualization.DataTable();
+                    dataTable.addColumn('string', 'Role');
+                    dataTable.addColumn('number', 'Count');
+
+                    data.forEach(item => {
+                        dataTable.addRow([item.role, item.count]);
+                    });
+
+                    const options = {
+                        title: 'Users by Role',
+                        width: 600,
+                        height: 400,
+                        pieHole: 0.4
+                    };
+
+                    const chart = new google.visualization.PieChart(document.getElementById('usersByRoleChart'));
+                    chart.draw(dataTable, options);
+                })
+                .catch(error => console.error('Error fetching chart data:', error));
+        }
+    </script>
+}
