@@ -6,8 +6,8 @@
     @foreach (var role in Model.AllRoles)
     {
         <div>
-            <input type="checkbox" name="Roles" value="@role.Name"
-            @(Model.UserRoles.Contains(role.Name) ? "checked=\"checked\"" : "") />
+            <input type="radio" name="SelectedRole" value="@role.Name"
+            @(Model.UserRoles.Contains(role.Name) ? "checked" : "") />
             @role.Name
         </div>
     }

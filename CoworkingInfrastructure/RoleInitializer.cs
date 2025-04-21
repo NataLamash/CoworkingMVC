@@ -10,8 +10,8 @@ public class RoleInitializer
         if (await roleManager.FindByNameAsync("user") == null)
             await roleManager.CreateAsync(new IdentityRole("user"));
 
-        string adminEmail = "admin@gmail.com";
-        string adminPassword = "Qwerty_1";
+        string adminEmail = "Admin_1@gmail.com";
+        string adminPassword = "Admin_1@gmail.com";
         if (await userManager.FindByNameAsync(adminEmail) == null)
         {
             var admin = new User { Email = adminEmail, UserName = adminEmail };

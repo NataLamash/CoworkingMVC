@@ -3,22 +3,92 @@
 <h2>Create Booking</h2>
 
 <form method="post" asp-action="Create">
-    <!-- Якщо ви передаєте CoworkingSpaceId як hidden -->
+    <!-- Передаємо ідентифікатор коворкінгу як hidden -->
     <input type="hidden" asp-for="CoworkingSpaceId" />
 
+    <!-- Вибір типу бронювання -->
     <div class="mb-3">
-        <label asp-for="StartTime" class="form-label"></label>
-        <input asp-for="StartTime" class="form-control" />
-        <span asp-validation-for="StartTime" class="text-danger"></span>
+        <label class="form-label">Тип бронювання</label>
+        <div>
+            <input type="radio" name="BookingType" value="SingleDay" checked="checked" /> Одноденне бронювання
+            <input type="radio" name="BookingType" value="MultipleDays" class="ms-3" /> Бронювання на декілька днів
+        </div>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="EndTime" class="form-label"></label>
-        <input asp-for="EndTime" class="form-control" />
-        <span asp-validation-for="EndTime" class="text-danger"></span>
+    <!-- Розділ для одноразового бронювання -->
+    <div id="singleDaySection">
+        <div class="mb-3">
+            <label asp-for="StartDate" class="form-label">Дата бронювання</label>
+            <input asp-for="StartDate" class="form-control" type="date" />
+            <span asp-validation-for="StartDate" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Час початку</label>
+            <select name="StartTime" class="form-select">
+                @for (int hour = 8; hour < 20; hour++)
+                {
+                    <option value="@(new DateTime(1,1,1,hour,0,0).ToString("HH:mm"))">
+                        @($"{hour}:00")
+                    </option>
+
+                }
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Час завершення</label>
+            <select name="EndTime" class="form-select">
+                @for (int hour = 9; hour <= 20; hour++)
+                {
+                    <option value="@(new DateTime(1, 1, 1, hour, 0, 0).ToString(" HH:mm"))">
+                        @($"{hour}:00")
+                    </option>
+                }
+            </select>
+        </div>
     </div>
 
-    <!-- Якщо треба додаткові послуги, додаєте тут чекбокси -->
+    <!-- Розділ для бронювання на декілька днів -->
+    <div id="multipleDaysSection" style="display:none;">
+        <div class="mb-3">
+            <label asp-for="StartDate" class="form-label">Дата початку</label>
+            <input asp-for="StartDate" class="form-control" type="date" />
+            <span asp-validation-for="StartDate" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="EndDate" class="form-label">Дата завершення</label>
+            <input asp-for="EndDate" class="form-control" type="date" />
+            <span asp-validation-for="EndDate" class="text-danger"></span>
+        </div>
+        <p class="text-muted">Для бронювання декількох днів час встановлено автоматично: початок – 08:00, завершення – 20:00.</p>
+    </div>
 
-    <button type="submit" class="btn btn-primary">Book</button>
+    <button type="submit" class="btn btn-primary">Бронювати</button>
 </form>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var bookingTypeRadios = document.getElementsByName("BookingType");
+            var singleDaySection = document.getElementById("singleDaySection");
+            var multipleDaysSection = document.getElementById("multipleDaysSection");
+
+            function toggleBookingType() {
+                var selectedType = document.querySelector('input[name="BookingType"]:checked').value;
+                if (selectedType === "SingleDay") {
+                    singleDaySection.style.display = "block";
+                    multipleDaysSection.style.display = "none";
+                } else {
+                    singleDaySection.style.display = "none";
+                    multipleDaysSection.style.display = "block";
+                }
+            }
+
+            bookingTypeRadios.forEach(function (radio) {
+                radio.addEventListener("change", toggleBookingType);
+            });
+
+            // Ініціалізуємо при завантаженні
+            toggleBookingType();
+        });
+    </script>
+}

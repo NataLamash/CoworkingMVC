@@ -32,6 +32,7 @@ namespace CoworkingInfrastructure.Controllers
         {
             var currentUser = await _userManager.GetUserAsync(User);
             var myBookings = _context.Bookings
+                .Include(b => b.CoworkingSpace) // Ось тут підвантажуємо дані про коворкінг
                 .Where(b => b.UserId == currentUser.Id)
                 .OrderByDescending(b => b.StartTime)
                 .ToList();
@@ -64,66 +65,164 @@ namespace CoworkingInfrastructure.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var coworkingSpace = _context.CoworkingSpaces.Find(model.CoworkingSpaceId);
+            // Знаходимо коворкінг
+            var coworkingSpace = await _context.CoworkingSpaces.FindAsync(model.CoworkingSpaceId);
             if (coworkingSpace == null)
             {
                 ModelState.AddModelError("", "CoworkingSpace not found.");
                 return View(model);
             }
 
-            var overlap = _context.Bookings.Any(b =>
-                b.CoworkingSpaceId == model.CoworkingSpaceId &&
-                // Перевірка, чи інтервал [StartTime, EndTime] перетинається
-                !(b.EndTime <= model.StartTime || b.StartTime >= model.EndTime)
-);
-            if (overlap)
+            // Примітивна перевірка, що бронювання не в минулому
+            DateTime now = DateTime.Now;
+
+            DateTime startDateTime, endDateTime;
+            double durationHours = 0;
+            bool isSingleDay = model.BookingType == "SingleDay";
+
+            if (isSingleDay)
             {
-                ModelState.AddModelError("", "This coworking space is already booked in the selected time range.");
+                // Одноденне бронювання: комбінуємо StartDate з рядковими StartTime і EndTime
+                try
+                {
+                    // Парсимо рядки у TimeSpan
+                    TimeSpan startTimeSpan = TimeSpan.Parse(model.StartTime);
+                    TimeSpan endTimeSpan = TimeSpan.Parse(model.EndTime);
+
+                    // Формуємо повні DateTime
+                    startDateTime = model.StartDate.Date.Add(startTimeSpan);
+                    endDateTime = model.StartDate.Date.Add(endTimeSpan);
+
+                    // Перевірка: бронювання має починатися не в минулому
+                    if (startDateTime < now)
+                    {
+                        ModelState.AddModelError("", "Booking start time cannot be in the past.");
+                        return View(model);
+                    }
+
+                    // Перевірка: час початку < час завершення
+                    if (endDateTime <= startDateTime)
+                    {
+                        ModelState.AddModelError("", "End time must be after start time.");
+                        return View(model);
+                    }
+
+                    // Обмеження: доступний часовий проміжок тільки між 08:00 та 20:00
+                    if (startTimeSpan < TimeSpan.FromHours(8))
+                    {
+                        ModelState.AddModelError("", "For single-day bookings, the start time must be no earlier than 08:00.");
+                        return View(model);
+                    }
+                    if (endTimeSpan > TimeSpan.FromHours(20) || (endTimeSpan == TimeSpan.FromHours(20) && model.EndTime.Contains(":") && !model.EndTime.EndsWith(":00")))
+                    {
+                        ModelState.AddModelError("", "For single-day bookings, the end time must be no later than 20:00.");
+                        return View(model);
+                    }
+                    // Переконаємося, що хвилини рівні нулю (чисто цілих годин)
+                    if (startTimeSpan.Minutes != 0 || endTimeSpan.Minutes != 0)
+                    {
+                        ModelState.AddModelError("", "For single-day bookings, please select times on the full hour.");
+                        return View(model);
+                    }
+
+                    durationHours = (endDateTime - startDateTime).TotalHours;
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Invalid time format. Please select valid times.");
+                    return View(model);
+                }
+            }
+            else if (model.BookingType == "MultipleDays")
+            {
+                // Для бронювання на декілька днів: EndDate має бути вказаний
+                if (!model.EndDate.HasValue)
+                {
+                    ModelState.AddModelError("", "Please provide an end date for multiple-day bookings.");
+                    return View(model);
+                }
+
+                // Формуємо час, автоматично встановлюючи:
+                // Початок: 08:00 на даті StartDate; Завершення: 20:00 на даті EndDate.
+                startDateTime = model.StartDate.Date.AddHours(8);
+                endDateTime = model.EndDate.Value.Date.AddHours(20);
+
+                // Перевірка: початок не в минулому
+                if (startDateTime < now)
+                {
+                    ModelState.AddModelError("", "Booking start time cannot be in the past.");
+                    return View(model);
+                }
+                if (endDateTime <= startDateTime)
+                {
+                    ModelState.AddModelError("", "End date must be after start date.");
+                    return View(model);
+                }
+
+                // Обчислюємо кількість днів. Додаємо 1, щоб врахувати, що бронювання включає обидва дні.
+                int days = (model.EndDate.Value.Date - model.StartDate.Date).Days + 1;
+                durationHours = days * 12; // Кожен день має 12 годин (з 08:00 до 20:00)
+            }
+            else
+            {
+                ModelState.AddModelError("", "Invalid booking type.");
                 return View(model);
             }
-            // Отримуємо поточного користувача
-            var currentUser = await _userManager.GetUserAsync(User);
 
-            // Обчислюємо тривалість (у годинах)
-            var durationHours = (model.EndTime - model.StartTime).TotalHours;
             if (durationHours <= 0)
             {
                 ModelState.AddModelError("", "Invalid time range.");
                 return View(model);
             }
 
-            // Формуємо бронювання
+            // Перевірка на перекриття бронювання
+            bool overlap = _context.Bookings.Any(b =>
+                b.CoworkingSpaceId == model.CoworkingSpaceId &&
+                !(b.EndTime <= startDateTime || b.StartTime >= endDateTime)
+            );
+            if (overlap)
+            {
+                ModelState.AddModelError("", "This coworking space is already booked in the selected time range.");
+                return View(model);
+            }
+
+            // Отримуємо поточного користувача
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            // Створюємо бронювання
             var booking = new Booking
             {
                 UserId = currentUser.Id,
                 CoworkingSpaceId = model.CoworkingSpaceId,
-                StartTime = model.StartTime,
-                EndTime = model.EndTime,
-                Duration = (int)durationHours, // або з точністю до хвилин
+                StartTime = startDateTime,
+                EndTime = endDateTime,
+                Duration = (int)durationHours,
                 Status = "Pending"
             };
 
-            // Підрахунок TotalPrice
+            // Обчислюємо вартість бронювання за погодинною ставкою
             decimal basePrice = coworkingSpace.HourlyRate * (decimal)durationHours;
-            // Якщо треба додати додаткові послуги:
-            // booking.BookingsFacilities = ...
             booking.TotalPrice = basePrice;
 
-            // Зберігаємо
             _context.Bookings.Add(booking);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return RedirectToAction("MyBookings");
         }
 
+
+
         // GET: Bookings/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var booking = _context.Bookings.Find(id);
+            // Завантажуємо разом із CoworkingSpace
+            var booking = _context.Bookings
+                .Include(b => b.CoworkingSpace)
+                .FirstOrDefault(b => b.Id == id);
+
             if (booking == null)
                 return NotFound();
 
-            // Якщо це не адмін і не власник бронювання - 403
             var currentUser = await _userManager.GetUserAsync(User);
             if (!User.IsInRole("admin") && booking.UserId != currentUser.Id)
             {
@@ -133,7 +232,7 @@ namespace CoworkingInfrastructure.Controllers
             return View(booking);
         }
 
-        // POST: Bookings/Delete/5 (admin-only або власник)
+        // POST: Bookings/Delete/5
         [HttpPost]
         [Authorize(Roles = "admin")]
         public IActionResult Delete(int id)
@@ -144,7 +243,7 @@ namespace CoworkingInfrastructure.Controllers
                 _context.Bookings.Remove(booking);
                 _context.SaveChanges();
             }
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", "UserProfile");
         }
     }
 }

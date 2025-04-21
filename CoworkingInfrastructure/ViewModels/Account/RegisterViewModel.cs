@@ -8,6 +8,11 @@ namespace CoworkingInfrastructure.ViewModels
         [Display(Name = "Email")]
         public string? Email { get; set; }
 
+        [Required(ErrorMessage = "Необхідно вказати ім'я користувача")]
+        [Display(Name = "Ім'я користувача")]
+        public string? UserName { get; set; }
+
+
         [Required(ErrorMessage = "Необхідно вказати пароль")]
         [DataType(DataType.Password)]
         [Display(Name = "Пароль")]

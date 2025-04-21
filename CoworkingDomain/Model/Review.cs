@@ -1,26 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CoworkingDomain.Model;
-
-public partial class Review : Entity
+namespace CoworkingDomain.Model
 {
+    [Table("reviews")]
+    public partial class Review : Entity
+    {
+        // Id успадковується з Entity і мапиться на колонку "id"
 
-    public string? UserId { get; set; }
+        [Column("user_id")]
+        public string? UserId { get; set; }
 
-    public int CoworkingSpaceId { get; set; }
+        [Column("coworking_space_id")]
+        public int CoworkingSpaceId { get; set; }
 
-    public int BookingId { get; set; }
+        [Column("booking_id")]
+        public int BookingId { get; set; }
 
-    public int Rating { get; set; }
+        [Column("rating")]
+        public int Rating { get; set; }
 
-    public string? Comment { get; set; }
+        [Column("comment")]
+        public string? Comment { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+        [Column("created_at")]
+        public DateTime CreatedAt { get; set; }
 
-    public virtual Booking Booking { get; set; } = null!;
+        [ForeignKey(nameof(BookingId))]
+        [InverseProperty(nameof(Booking.Reviews))]
+        public virtual Booking Booking { get; set; } = null!;
 
-    public virtual CoworkingSpace CoworkingSpace { get; set; } = null!;
+        [ForeignKey(nameof(CoworkingSpaceId))]
+        [InverseProperty(nameof(CoworkingSpace.Reviews))]
+        public virtual CoworkingSpace CoworkingSpace { get; set; } = null!;
 
-    public virtual User User { get; set; } = null!;
+        [ForeignKey(nameof(UserId))]
+        [InverseProperty(nameof(User.Reviews))]
+        public virtual User User { get; set; } = null!;
+    }
 }

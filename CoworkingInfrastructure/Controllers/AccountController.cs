@@ -27,32 +27,28 @@ namespace CoworkingInfrastructure.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Створюємо користувача, використовуючи Email як UserName або UserName з моделі
                 var user = new User
                 {
                     Email = model.Email,
-                    UserName = model.Email
+                    UserName = model.UserName
                 };
-
-                var existingUser = await _userManager.FindByEmailAsync(model.Email);
-                if (existingUser != null)
-                {
-                    ModelState.AddModelError("", "Користувач із таким Email уже існує.");
-                    return View(model);
-                }
-
 
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(user, "user");
+                    // Аутентифікація та логін
+                    await _userManager.AddToRoleAsync(user, "user");  // за потреби, додайте роль
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     return RedirectToAction("Index", "Home");
                 }
                 foreach (var error in result.Errors)
+                {
                     ModelState.AddModelError("", error.Description);
+                }
             }
-            return View(model);
 
+            return View(model);
         }
 
         [HttpGet]

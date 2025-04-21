@@ -59,24 +59,28 @@ namespace CoworkingInfrastructure.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditRoles(string userId, List<string> roles)
+        public async Task<IActionResult> EditRoles(ChangeRoleViewModel model)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return NotFound();
+            var user = await _userManager.FindByIdAsync(model.UserId);
+            if (user == null)
+                return NotFound();
 
-            // Які ролі вже є в користувача
+            // Отримуємо усі поточні ролі користувача
             var userRoles = await _userManager.GetRolesAsync(user);
 
-            // Список ролей, які було додано
-            var addedRoles = roles.Except(userRoles);
-            // Список ролей, які було видалено
-            var removedRoles = userRoles.Except(roles);
+            // Видаляємо усі поточні ролі
+            await _userManager.RemoveFromRolesAsync(user, userRoles);
 
-            await _userManager.AddToRolesAsync(user, addedRoles);
-            await _userManager.RemoveFromRolesAsync(user, removedRoles);
+            // Додаємо обрану роль (SelectedRole)
+            if (!string.IsNullOrEmpty(model.SelectedRole))
+            {
+                await _userManager.AddToRoleAsync(user, model.SelectedRole);
+            }
 
-            return RedirectToAction("Index");
+            // Повертаємося до списку користувачів (або куди потрібно)
+            return RedirectToAction("Index", "UserProfile");
         }
+
 
         [HttpGet]
         public async Task<IActionResult> EditRoles(string userId)
@@ -94,8 +98,9 @@ namespace CoworkingInfrastructure.Controllers
                 UserRoles = userRoles,
                 AllRoles = allRoles
             };
-            return View(model); // шукатиме Views/Users/EditRoles.cshtml
+            return View(model);
         }
+
 
     }
 }

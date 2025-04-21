@@ -31,6 +31,7 @@ public partial class CoworkingDbContext : IdentityDbContext<User>
 
     public virtual DbSet<Review> Reviews { get; set; }
 
+    public DbSet<CoworkingSpaceImage> CoworkingSpaceImages { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Server=Victus04\\SQLEXPRESS; Database=CoworkingDB; Trusted_Connection=True; TrustServerCertificate=True; ");
@@ -67,7 +68,7 @@ public partial class CoworkingDbContext : IdentityDbContext<User>
 
             entity.HasOne(d => d.CoworkingSpace).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.CoworkingSpaceId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__bookings__cowork__66603565");
 
             entity.HasOne(d => d.User).WithMany(p => p.Bookings)
@@ -77,45 +78,59 @@ public partial class CoworkingDbContext : IdentityDbContext<User>
 
         modelBuilder.Entity<BookingsFacility>(entity =>
         {
-            entity.HasKey(e => new { e.BookingId, e.FacilityId }).HasName("PK__bookings__A6CD2B1BD2EBC312");
+            // складаємо ключ з BookingId + FacilityId
+            entity.HasKey(e => new { e.BookingId, e.FacilityId })
+                  .HasName("PK__bookings__A6CD2B1BD2EBC312");
 
+            // таблиця й колонки
             entity.ToTable("bookings_facilities");
-
             entity.Property(e => e.BookingId).HasColumnName("booking_id");
             entity.Property(e => e.FacilityId).HasColumnName("facility_id");
             entity.Property(e => e.Price)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("price");
+                  .HasColumnType("decimal(10, 2)")
+                  .HasColumnName("price");
 
-            entity.HasOne(d => d.Booking).WithMany(p => p.BookingsFacilities)
-                .HasForeignKey(d => d.BookingId)
-                .HasConstraintName("FK__bookings___booki__6A30C649");
+            // ось ця стрічка — кажемо EF не мапити властивість Id
+            entity.Ignore(e => e.Id);
 
-            entity.HasOne(d => d.Facility).WithMany(p => p.BookingsFacilities)
-                .HasForeignKey(d => d.FacilityId)
-                .HasConstraintName("FK__bookings___facil__6B24EA82");
+            // зв’язки
+            entity.HasOne(d => d.Booking)
+                  .WithMany(p => p.BookingsFacilities)
+                  .HasForeignKey(d => d.BookingId)
+                  .HasConstraintName("FK__bookings___booki__6A30C649");
+
+            entity.HasOne(d => d.Facility)
+                  .WithMany(p => p.BookingsFacilities)
+                  .HasForeignKey(d => d.FacilityId)
+                  .HasConstraintName("FK__bookings___facil__6B24EA82");
         });
 
         modelBuilder.Entity<CoworkingFacilityPrice>(entity =>
         {
-            entity.HasKey(e => new { e.CoworkingSpaceId, e.FacilityId }).HasName("PK__coworkin__893C2A71B09BC337");
+            entity.HasKey(e => new { e.CoworkingSpaceId, e.FacilityId })
+                  .HasName("PK__coworkin__893C2A71B09BC337");
 
             entity.ToTable("coworking_facility_prices");
-
             entity.Property(e => e.CoworkingSpaceId).HasColumnName("coworking_space_id");
             entity.Property(e => e.FacilityId).HasColumnName("facility_id");
             entity.Property(e => e.Price)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("price");
+                  .HasColumnType("decimal(10, 2)")
+                  .HasColumnName("price");
 
-            entity.HasOne(d => d.CoworkingSpace).WithMany(p => p.CoworkingFacilityPrices)
-                .HasForeignKey(d => d.CoworkingSpaceId)
-                .HasConstraintName("FK__coworking__cowor__4316F928");
+            // і тут – сховаємо невідповідний Id!
+            entity.Ignore(e => e.Id);
 
-            entity.HasOne(d => d.Facility).WithMany(p => p.CoworkingFacilityPrices)
-                .HasForeignKey(d => d.FacilityId)
-                .HasConstraintName("FK__coworking__facil__440B1D61");
+            entity.HasOne(d => d.CoworkingSpace)
+                  .WithMany(p => p.CoworkingFacilityPrices)
+                  .HasForeignKey(d => d.CoworkingSpaceId)
+                  .HasConstraintName("FK__coworking__cowor__4316F928");
+
+            entity.HasOne(d => d.Facility)
+                  .WithMany(p => p.CoworkingFacilityPrices)
+                  .HasForeignKey(d => d.FacilityId)
+                  .HasConstraintName("FK__coworking__facil__440B1D61");
         });
+
 
         modelBuilder.Entity<CoworkingSpace>(entity =>
         {

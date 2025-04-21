@@ -1,14 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CoworkingDomain.Model;
-
-public partial class Facility : Entity
+namespace CoworkingDomain.Model
 {
+    [Table("facilities")]
+    public partial class Facility : Entity
+    {
+        // Id успадковується з Entity і мапиться на колонку "id"
 
-    public string Name { get; set; } = null!;
+        [Column("name")]
+        public string Name { get; set; } = null!;
 
-    public virtual ICollection<BookingsFacility> BookingsFacilities { get; set; } = new List<BookingsFacility>();
+        [InverseProperty(nameof(BookingsFacility.Facility))]
+        public virtual ICollection<BookingsFacility> BookingsFacilities { get; set; } = new List<BookingsFacility>();
 
-    public virtual ICollection<CoworkingFacilityPrice> CoworkingFacilityPrices { get; set; } = new List<CoworkingFacilityPrice>();
+        [InverseProperty(nameof(CoworkingFacilityPrice.Facility))]
+        public virtual ICollection<CoworkingFacilityPrice> CoworkingFacilityPrices { get; set; } = new List<CoworkingFacilityPrice>();
+    }
 }

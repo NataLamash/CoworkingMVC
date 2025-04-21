@@ -1,0 +1,32 @@
+﻿@model CoworkingInfrastructure.ViewModels.CoworkingFacilities.CoworkingFacilitiesViewModel
+
+<h2>Налаштування зручностей для коворкінгу</h2>
+<form method="post" asp-action="EditFacilities">
+    <input type="hidden" asp-for="CoworkingSpaceId" />
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Зручність</th>
+                <th>Вибрати</th>
+                <th>Ціна</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Facilities.Count; i++)
+            {
+                <tr>
+                    <td>@Model.Facilities[i].FacilityName</td>
+                    <td>
+                        <input asp-for="@Model.Facilities[i].IsSelected" />
+                    </td>
+                    <td>
+                        <input asp-for="@Model.Facilities[i].Price" class="form-control" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Зберегти</button>
+</form>

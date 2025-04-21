@@ -1,0 +1,33 @@
+﻿@model IEnumerable<UserViewModel>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Роль</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Email</td>
+                <td>
+                    @string.Join(", ", user.Roles)
+                </td>
+                <td>
+                    <form asp-controller="Users" asp-action="Delete" method="post" style="display:inline;">
+                        <input type="hidden" name="userId" value="@user.Id" />
+                        <button type="submit" class="btn btn-danger">Видалити</button>
+                    </form>
+                    <a asp-controller="Users" asp-action="EditRoles" asp-route-userId="@user.Id" class="btn btn-warning ms-2">Змінити ролі</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr />
+
+

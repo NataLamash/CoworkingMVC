@@ -1,0 +1,116 @@
+﻿@using CoworkingDomain.Model
+@inject Microsoft.AspNetCore.Identity.UserManager<User> UserManager
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+}
+
+@model CoworkingInfrastructure.ViewModels.UserProfileViewModel
+
+
+@{
+    ViewData["Title"] = "User Cabinet";
+}
+
+<h2>Кабінет користувача</h2>
+<p>Ласкаво просимо, @currentUser.UserName!</p>
+
+<h3>Мої бронювання</h3>
+@if (!Model.MyBookings.Any())
+{
+    <p>У вас немає бронювань.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Коворкінг</th>
+                <th>Початок</th>
+                <th>Кінець</th>
+                <th>Тривалість (год.)</th>
+                <th>Ціна</th>
+                <th>Статус</th>
+                <th>Дії</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var booking in Model.MyBookings)
+            {
+                <tr>
+                    <td>@booking.CoworkingSpace?.Name</td>
+                    <td>@booking.StartTime.ToString("g")</td>
+                    <td>@booking.EndTime.ToString("g")</td>
+                    <td>@booking.Duration</td>
+                    <td>@booking.TotalPrice.ToString("C")</td>
+                    <td>@booking.Status</td>
+                    <td>
+                        <a asp-controller="Bookings" asp-action="Details" asp-route-id="@booking.Id" class="btn btn-sm btn-primary">Деталі</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (User.IsInRole("admin"))
+{
+    <hr />
+    <h3>Всі бронювання (для адміна)</h3>
+    @if (Model.AllBookings == null || !Model.AllBookings.Any())
+    {
+        <p>Немає бронювань.</p>
+    }
+    else
+    {
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Коворкінг</th>
+                    <th>Початок</th>
+                    <th>Кінець</th>
+                    <th>Тривалість (год.)</th>
+                    <th>Ціна</th>
+                    <th>Статус</th>
+                    <th>Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var booking in Model.AllBookings)
+                {
+                    <tr>
+                        <td>@booking.CoworkingSpace?.Name</td>
+                        <td>@booking.StartTime.ToString("g")</td>
+                        <td>@booking.EndTime.ToString("g")</td>
+                        <td>@booking.Duration</td>
+                        <td>@booking.TotalPrice.ToString("C")</td>
+                        <td>@booking.Status</td>
+                        <td>
+                            <a asp-controller="Bookings" asp-action="Details" asp-route-id="@booking.Id" class="btn btn-sm btn-primary">Деталі</a>
+
+                            <form asp-controller="Bookings"
+                                  asp-action="Delete"
+                                  asp-route-id="@booking.Id"
+                                  method="post"
+                                  style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+}
+
+
+@if (User.IsInRole("admin"))
+{
+    <hr />
+    <h3>Список користувачів</h3>
+    @await Component.InvokeAsync("UsersList")
+
+    //<hr />
+    //<h3>Статистика користувачів (діаграма)</h3>
+    //@await Component.InvokeAsync("UserChart")
+}

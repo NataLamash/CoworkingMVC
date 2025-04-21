@@ -84,9 +84,6 @@ namespace CoworkingInfrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("facility_id");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("price");
@@ -108,9 +105,6 @@ namespace CoworkingInfrastructure.Migrations
                     b.Property<int>("FacilityId")
                         .HasColumnType("int")
                         .HasColumnName("facility_id");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10, 2)")
@@ -161,6 +155,31 @@ namespace CoworkingInfrastructure.Migrations
                         .HasName("PK__coworkin__3213E83F06EA49CC");
 
                     b.ToTable("coworking_spaces", (string)null);
+                });
+
+            modelBuilder.Entity("CoworkingDomain.Model.CoworkingSpaceImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CoworkingSpaceId")
+                        .HasColumnType("int")
+                        .HasColumnName("coworking_space_id");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("file_path");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoworkingSpaceId");
+
+                    b.ToTable("coworking_space_images");
                 });
 
             modelBuilder.Entity("CoworkingDomain.Model.Facility", b =>
@@ -535,6 +554,17 @@ namespace CoworkingInfrastructure.Migrations
                     b.Navigation("CoworkingSpace");
 
                     b.Navigation("Facility");
+                });
+
+            modelBuilder.Entity("CoworkingDomain.Model.CoworkingSpaceImage", b =>
+                {
+                    b.HasOne("CoworkingDomain.Model.CoworkingSpace", "CoworkingSpace")
+                        .WithMany()
+                        .HasForeignKey("CoworkingSpaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CoworkingSpace");
                 });
 
             modelBuilder.Entity("CoworkingDomain.Model.Payment", b =>

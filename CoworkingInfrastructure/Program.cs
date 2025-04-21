@@ -2,35 +2,53 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using CoworkingDomain.Model;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-builder.Services.AddDbContext<CoworkingDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-    )
+// ─── 1. Реєструємо DbContext з логуванням SQL ───────────────────────────────
+builder.Services.AddDbContext<CoworkingDbContext>(opts =>
+    opts
+      .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+      // Виводити кожен SQL у консоль
+      .LogTo(Console.WriteLine, LogLevel.Information)
+      .EnableSensitiveDataLogging()
 );
 
-builder.Services.AddDbContext<CoworkingDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// ─── 2. Налаштовуємо Identity і його опції ─────────────────────────────────
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.User.AllowedUserNameCharacters =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" +
+        "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя" +
+        "АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ";
+    // за бажанням можна додати ще options.Password, Lockout тощо
+});
 
 builder.Services.AddIdentity<User, IdentityRole>()
-    .AddEntityFrameworkStores<CoworkingDbContext>();
+    .AddEntityFrameworkStores<CoworkingDbContext>()
+    .AddDefaultTokenProviders();
 
+// ─── 3. Інші сервіси ───────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ─── 4. Middleware ───────────────────────────────────────────────────────────
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// ─── 5. Ініціалізація ролей/адмінів ───────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -42,21 +60,14 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        // Лог помилки
+        // TODO: залогувати ex
     }
 }
 
-app.UseHttpsRedirection();
-app.UseRouting();
-
-app.UseAuthorization();
-
-app.MapStaticAssets();
-
+// ─── 6. Маршрутизація ─────────────────────────────────────────────────────────
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=CoworkingSpaces}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();

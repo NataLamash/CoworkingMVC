@@ -1,54 +1,107 @@
-﻿@model CoworkingDomain.Model.CoworkingSpace
+﻿@model CoworkingInfrastructure.ViewModels.CoworkingSpaces.EditCoworkingSpaceViewModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit CoworkingSpace";
 }
 
-<h1>Edit</h1>
-
-<h4>CoworkingSpace</h4>
+<h1>Edit CoworkingSpace</h1>
 <hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Location" class="control-label"></label>
-                <input asp-for="Location" class="form-control" />
-                <span asp-validation-for="Location" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Capacity" class="control-label"></label>
-                <input asp-for="Capacity" class="form-control" />
-                <span asp-validation-for="Capacity" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="HourlyRate" class="control-label"></label>
-                <input asp-for="HourlyRate" class="form-control" />
-                <span asp-validation-for="HourlyRate" class="text-danger"></span>
-            </div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <!-- приховане Id -->
+    <input asp-for="Id" type="hidden" />
+
+    <!-- 1. Існуючі фото з чекбоксом Видалити -->
+    @if (Model.ExistingPhotos.Any())
+    {
+        <div class="mb-3">
+            <label class="form-label">Existing Photos</label>
+            <div class="row">
+                @for (int i = 0; i < Model.ExistingPhotos.Count; i++)
+                {
+                    <div class="col-3 text-center mb-2">
+                        <img src="@Model.ExistingPhotos[i].FilePath"
+                             class="img-thumbnail mb-1" />
+                        <div class="form-check">
+                            <input asp-for="ExistingPhotos[@i].Remove"
+                                   class="form-check-input" />
+                            <label asp-for="ExistingPhotos[@i].Remove"
+                                   class="form-check-label">Видалити</label>
+                        </div>
+                        <input asp-for="ExistingPhotos[@i].Id" type="hidden" />
+                        <input asp-for="ExistingPhotos[@i].FilePath" type="hidden" />
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- 2. Нові фото (не обов'язково) -->
+    <div class="mb-3">
+        <label asp-for="NewPhotos" class="form-label">Add Photos (optional)</label>
+        <input asp-for="NewPhotos" type="file" multiple class="form-control" />
+        <span asp-validation-for="NewPhotos" class="text-danger"></span>
+    </div>
+
+    <!-- 3. Поля CoworkingSpace -->
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Location" class="form-label"></label>
+        <input asp-for="Location" class="form-control" />
+        <span asp-validation-for="Location" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Capacity" class="form-label"></label>
+        <input asp-for="Capacity" type="number" class="form-control" />
+        <span asp-validation-for="Capacity" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="HourlyRate" class="form-label"></label>
+        <input asp-for="HourlyRate" type="number" step="0.01" class="form-control" />
+        <span asp-validation-for="HourlyRate" class="text-danger"></span>
+    </div>
+
+    <!-- 4. Facilities -->
+    <h4>Facilities</h4>
+    <div class="row">
+        @for (int i = 0; i < Model.Facilities.Count; i++)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="form-check">
+                    <input asp-for="Facilities[@i].IsSelected" class="form-check-input" />
+                    <label asp-for="Facilities[@i].IsSelected" class="form-check-label">
+                        @Model.Facilities[i].FacilityName
+                    </label>
+                </div>
+                <input asp-for="Facilities[@i].FacilityId" type="hidden" />
+                <div class="mt-1">
+                    <label asp-for="Facilities[@i].Price" class="form-label">Price</label>
+                    <input asp-for="Facilities[@i].Price" class="form-control"
+                           placeholder="Enter price if selected" />
+                    <span asp-validation-for="Facilities[@i].Price" class="text-danger"></span>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- 5. Кнопка збереження -->
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-link">Back to List</a>
+</form>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

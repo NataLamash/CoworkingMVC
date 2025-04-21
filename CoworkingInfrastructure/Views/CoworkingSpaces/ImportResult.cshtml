@@ -1,0 +1,19 @@
+﻿@{
+    ViewData["Title"] = "Import Result";
+}
+<h1>Import Result</h1>
+
+<p>Успішно імпортовано: <strong>@ViewBag.ImportedCount</strong> записів.</p>
+
+@if (((List<string>)ViewBag.Errors).Any())
+{
+    <h4>Помилки:</h4>
+    <ul>
+        @foreach (var e in (List<string>)ViewBag.Errors)
+        {
+            <li>@e</li>
+        }
+    </ul>
+}
+
+<a asp-action="Index" class="btn btn-link">Back to list</a>

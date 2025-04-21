@@ -1,0 +1,29 @@
+﻿@model IEnumerable<CoworkingInfrastructure.ViewComponents.UserChartViewComponent.UsersByRoleResponseItem>
+
+<div id="UserChart" style="width:100%; max-width:600px; height:400px; margin: 0 auto;"></div>
+
+<script>
+    function drawUserChart() {
+        const dataTable = new google.visualization.DataTable();
+        dataTable.addColumn('string', 'Role');
+        dataTable.addColumn('number', 'Count');
+
+    @foreach (var item in Model)
+    {
+        @:dataTable.addRow(['@item.Role', @item.Count]);
+    }
+
+        const options = {
+            title: 'Users by Role',
+            width: 600,
+            height: 400,
+            pieHole: 0.4
+        };
+
+        const chart = new google.visualization.PieChart(document.getElementById('UserChart'));
+        chart.draw(dataTable, options);
+    }
+
+    // Переконайтеся, що Google Charts підключено, наприклад, через _Layout.cshtml
+    google.charts.setOnLoadCallback(drawUserChart);
+</script>

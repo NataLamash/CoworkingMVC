@@ -1,0 +1,12 @@
+﻿@{
+    ViewData["Title"] = "Import CoworkingSpaces";
+}
+<h1>Import from Excel</h1>
+
+<form asp-action="Import" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label class="form-label">Excel File</label>
+        <input type="file" name="file" class="form-control" accept=".xlsx,.xls" />
+    </div>
+    <button type="submit" class="btn btn-primary">Import</button>
+</form>

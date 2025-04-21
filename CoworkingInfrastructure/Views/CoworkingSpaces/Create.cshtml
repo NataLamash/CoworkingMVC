@@ -1,53 +1,85 @@
-﻿@model CoworkingDomain.Model.CoworkingSpace
-
+﻿@model CoworkingInfrastructure.ViewModels.CoworkingSpaces.CreateCoworkingSpaceViewModel
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create CoworkingSpace";
 }
 
-<h1>Create</h1>
-
-<h4>CoworkingSpace</h4>
+<h1>Create CoworkingSpace</h1>
 <hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Location" class="control-label"></label>
-                <input asp-for="Location" class="form-control" />
-                <span asp-validation-for="Location" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Capacity" class="control-label"></label>
-                <input asp-for="Capacity" class="form-control" />
-                <span asp-validation-for="Capacity" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="HourlyRate" class="control-label"></label>
-                <input asp-for="HourlyRate" class="form-control" />
-                <span asp-validation-for="HourlyRate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <!-- Фото -->
+    <div class="mb-3">
+        <label asp-for="Photos" class="form-label">Фото (можна кілька)</label>
+        <input asp-for="Photos" type="file" multiple class="form-control" />
+        <span asp-validation-for="Photos" class="text-danger"></span>
+    </div>
+
+    <!-- Name -->
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <!-- Location -->
+    <div class="mb-3">
+        <label asp-for="Location" class="form-label"></label>
+        <input asp-for="Location" class="form-control" />
+        <span asp-validation-for="Location" class="text-danger"></span>
+    </div>
+
+    <!-- Description -->
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <!-- Capacity -->
+    <div class="mb-3">
+        <label asp-for="Capacity" class="form-label"></label>
+        <input asp-for="Capacity" type="number" class="form-control" />
+        <span asp-validation-for="Capacity" class="text-danger"></span>
+    </div>
+
+    <!-- HourlyRate -->
+    <div class="mb-3">
+        <label asp-for="HourlyRate" class="form-label"></label>
+        <input asp-for="HourlyRate" type="number" step="0.01" class="form-control" />
+        <span asp-validation-for="HourlyRate" class="text-danger"></span>
+    </div>
+
+    <!-- Facilities -->
+    <h4>Facilities</h4>
+    <div class="row">
+        @for (int i = 0; i < Model.Facilities.Count; i++)
+        {
+            <div class="col-md-4 mb-2">
+                <div class="form-check">
+                    <input asp-for="Facilities[@i].IsSelected" class="form-check-input" />
+                    <label asp-for="Facilities[@i].IsSelected" class="form-check-label">
+                        @Model.Facilities[i].FacilityName
+                    </label>
+                </div>
+                <input asp-for="Facilities[@i].FacilityId" type="hidden" />
+                <div class="mt-1">
+                    <label asp-for="Facilities[@i].Price" class="form-label">Price</label>
+                    <input asp-for="Facilities[@i].Price" class="form-control"
+                           placeholder="Enter price if selected" />
+                    <span asp-validation-for="Facilities[@i].Price" class="text-danger"></span>
+                </div>
+            </div>
+        }
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-action="Index" class="btn btn-link">Back to list</a>
+</form>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
